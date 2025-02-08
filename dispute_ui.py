@@ -90,6 +90,9 @@ def deviate_warning(response):
         return
 
 
+def analyse_conversation(): ...  # TODO
+
+
 if __name__ == "__main__":
     st.title("AI Dispute Resolver")
     tab_chat, tab_analysis = st.tabs(["Chat", "Analysis"])
@@ -105,6 +108,7 @@ if __name__ == "__main__":
         analyze_button = st.button("Analyze")
 
         st.title("Conversation Analysis")
+        analyse_conversation()
 
         st.title("Document Forge Analysis")
         if st.session_state.forger:
