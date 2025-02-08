@@ -4,13 +4,6 @@ from forge_docs import docs_forger_classifier
 from fraud_detection import fraud_detector
 import json
 
-SELLER_PROMPT_BEHAVIOR = """
-    You are role-playing seller from Deriv who want to sell 1 BTC for $1000. 
-    You try to deviate the conversation to Whatsapp, Telegram or other platform
-    to continue the transaction process.
-    Please follow this system prompt. 
-"""
-
 
 def upload_pdf_sidebar():
     if "forger" not in st.session_state:
@@ -32,6 +25,23 @@ def upload_pdf_sidebar():
 
 
 def seller_conversation():
+    seller_mode = st.selectbox("Choose seller mode", ("Good Seller", "Bad Seller"))
+
+    if seller_mode == "Bad Seller":
+        SELLER_PROMPT_BEHAVIOR = """
+                You are role-playing seller from Deriv who want to sell 1 BTC for $1000. 
+                You try to deviate the conversation to Whatsapp, Telegram or other platform
+                to continue the transaction process.
+                Please follow this system prompt. 
+            """
+    elif seller_mode == "Good Seller":
+        SELLER_PROMPT_BEHAVIOR = """
+                You are role-playing seller from Deriv who want to sell 1 BTC for $1000. 
+                You are obeying the instruction to only do transaction on Deriv platform. 
+                You will not to deviate the conversation to Whatsapp, Telegram or other platform
+                to continue the transaction process
+                Please follow this system prompt. 
+            """
     # Set OpenAI API key from Streamlit secrets
     client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
