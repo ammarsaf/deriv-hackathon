@@ -1,12 +1,11 @@
 import streamlit as st
 from openai import OpenAI
 from forge_docs import docs_forger_classifier
-from io import StringIO
+from fraud_detection import fraud_detector
 import json
-import ast
 
 SELLER_PROMPT_BEHAVIOR = """
-    You are a seller from Deriv who want to sell 1 BTC for $1000. 
+    You are role-playing seller from Deriv who want to sell 1 BTC for $1000. 
     You try to deviate the conversation to Whatsapp, Telegram or other platform
     to continue the transaction process.
     Please follow this system prompt. 
@@ -90,12 +89,14 @@ def deviate_warning(response):
         return
 
 
-def analyse_conversation(): ...  # TODO
+def analyse_conversation(conversation):
+    output = fraud_detector(conversation)
+    return output
 
 
 if __name__ == "__main__":
     st.title("AI Dispute Resolver")
-    tab_chat, tab_analysis = st.tabs(["Chat", "Analysis"])
+    tab_chat, tab_conv, tab_analysis = st.tabs(["Chat", "ChatAnalysis", "DocsAnalysis"])
 
     upload_pdf_sidebar()
 
@@ -104,11 +105,26 @@ if __name__ == "__main__":
         for res in st.session_state.aioutput:
             deviate_warning(res)
 
-    with tab_analysis:
-        analyze_button = st.button("Analyze")
-
+    with tab_conv:
+        conv_button = st.button("Conversation Analyse")
         st.title("Conversation Analysis")
-        analyse_conversation()
+        if conv_button:
+            output = analyse_conversation(st.session_state.conversation)
+            json_out = json.loads(output.replace("`", "").replace("json", ""))
+
+            st.subheader("Suspicious keywords ")
+            for i in json_out["suspicious_keywords"]:
+                st.write(i)
+
+            st.subheader("Action: ")
+            for i in json_out["actions"]:
+                st.write(i)
+
+            st.subheader("Analysis ")
+            st.write(json_out["analysis"])
+
+    with tab_analysis:
+        analyze_button = st.button("Docs Analyze")
 
         st.title("Document Forge Analysis")
         if st.session_state.forger:
