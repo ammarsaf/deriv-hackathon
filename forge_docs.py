@@ -90,9 +90,9 @@ def docs_forger_classifier(pdf_path, role, requested_amount: int = 1000):
         </OBJECTIVE>
 
         <CONTEXT>  
-        **Seller Requested Amount:** {requested_amount}  
+        **Seller Requested Amount:** {}  
         **Document Forgery Results & Buyer Transaction Details:**  
-        {out}  
+        {}  
         </CONTEXT>  
 
         <EVALUATION_CRITERIA>  
