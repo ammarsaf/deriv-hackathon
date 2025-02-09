@@ -105,7 +105,8 @@ def analyse_conversation(conversation):
 
 
 if __name__ == "__main__":
-    st.title("AI Dispute Resolver")
+    st.image("./logo_pp.png", width=100)
+    st.title("P2P AI Dispute Resolver")
     tab_chat, tab_conv, tab_analysis = st.tabs(["Chat", "ChatAnalysis", "DocsAnalysis"])
 
     upload_pdf_sidebar()
