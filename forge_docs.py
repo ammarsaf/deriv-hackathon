@@ -10,8 +10,7 @@ client = openai.OpenAI(api_key=api_key)
 # pdf_path = "../deriv_fake_transactions/fake_bank_1182032140.pdf"
 output_folder = "images"
 
-
-def docs_forger_classifier(pdf_path, role):
+def docs_forger_classifier(pdf_path, role, requested_amount: int = 1000):
     if role == "buyer":
         images = pdf2image.convert_from_bytes(pdf_path)
     elif role == "seller":
@@ -34,33 +33,37 @@ def docs_forger_classifier(pdf_path, role):
     requested_amount = "$1000"
 
     first_prompt = """
-    You are an expert for Deriv peer-2-peer in document forgery detection.     
-    Analyze the provided document images for any signs of tampering, inconsistencies, or anomalies.
-    Provide a concise and detailed report based on your findings.
+        <OBJECTIVE>
+        You are an expert in document forgery detection for the Deriv Peer-to-Peer platform.  
+        Your task is to analyze provided document images for any signs of tampering, inconsistencies, or anomalies.  
+        Provide a concise and detailed report based on your findings.  
 
-    This is list of what to check:
-    2. Wrong Dates
-    3. Wrong Deposits
-    4. Different font
-    5. Repeated transaction no.
-    6. wrong ending balance.
-    7. wrong withdraws.
-    8. Spelling errors.
-    9. Sign of alteration if can.
+        </OBJECTIVE>  
 
-    Requested amount: {}
+        <CHECKLIST>  
+        Examine the document for the following forgery indicators:  
+        1. **Wrong Dates** – Bank statements should follow a reverse chronological order.  
+        2. **Wrong Deposits** – Inconsistencies in deposit amounts.  
+        3. **Different Fonts** – Variations in text style that suggest manual edits.  
+        4. **Repeated Transaction Numbers** – Duplicated transaction IDs, which are suspicious.  
+        5. **Wrong Ending/Beginning Balance** – Mismatches in balance calculations.  
+        6. **Wrong Withdrawals** – Unusual or inconsistent withdrawal amounts.  
+        7. **Spelling Errors** – Typos or grammatical errors in financial documents.  
+        8. **Signs of Alteration** – Inconsistencies in fonts, formatting, logos, paper quality, or alignment, indicating cut-and-paste editing.  
+        9. **Too Many Round Numbers** – An unusually high number of round figures, which may indicate fabricated transactions.  
 
-    ###########################################################
+        </CHECKLIST>
 
-    Output in json:
-    analysis: summarize and explain your findings
-    document_info: key,value extraction for useful info
-    forged_document_bool: if this document is forged
+        <RESPONSE_SCHEMA>  
+        Your response should be in JSON format with the following fields:  
 
-    """.format(
-        requested_amount
-    )
-    # print(first_prompt)
+        ```json
+            "analysis": "Summarize and explain your findings.",  
+            "document_info": { "key": "value" },  
+            "forged_document_bool": true/false (if any of the documents are forged or not)
+        ```
+    """
+
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -78,29 +81,40 @@ def docs_forger_classifier(pdf_path, role):
         max_tokens=1024,
     )
     out = response.choices[0].message.content
-    # print(out)
-
-    requested_amount = 934
 
     second_prompt = """
-    You are an expert for Deriv peer-2-peer in dispute resolution.
-    You will receive document forgery results that act as proof of transfer and you will conduct a final review to resolve 
-    such dispute between a buyer and a seller.
+        <OBJECTIVE>  
+        You are an expert in dispute resolution for Deriv Peer-to-Peer transactions.  
+        Your role is to analyze document forgery results that act as proof of transfer and conduct a final review to resolve disputes between a buyer and a seller.  
 
-    ### Context
-    Seller amount requested: {}
-    Document forgery results and buyer transaction details:
-    {}
+        </OBJECTIVE>
 
-    ###
-    Output in json:
-    dispute_verdict: choose the most likely outcome only - [buyer_not_paid, seller_not_released, buyer_underpaid, buyer_overpaid]
-    analysis: step by step give your reasoning
+        <CONTEXT>  
+        **Seller Requested Amount:** {requested_amount}  
+        **Document Forgery Results & Buyer Transaction Details:**  
+        {out}  
+        </CONTEXT>  
 
+        <EVALUATION_CRITERIA>  
+        Determine the dispute verdict based on the following conditions:  
+        - If the documents are forged → **"dispute_verdict": "buyer_not_paid"**  
+        - If the buyer underpaid the seller (amount transacted < requested amount) → **"dispute_verdict": "buyer_underpaid"**  
+        - If the buyer overpaid the seller (amount transacted > requested amount) → **"dispute_verdict": "buyer_overpaid"**  
+        - If the seller did not specify a requested amount → **"dispute_verdict": "seller_not_released"**  
+
+        </EVALUATION_CRITERIA>  
+
+        <OUTPUT_FORMAT>  
+        Your response should be in JSON format:  
+
+        ```json
+            "dispute_verdict": "buyer_not_paid",  
+            "analysis": "Step-by-step explanation of how the verdict was reached."
+        ```
     """.format(
         requested_amount, out
     )
-    # print(second_prompt)
+
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
@@ -119,5 +133,4 @@ def docs_forger_classifier(pdf_path, role):
     )
     out = response.choices[0].message.content
 
-    # print(out)
     return out

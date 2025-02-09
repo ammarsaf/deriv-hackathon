@@ -31,7 +31,7 @@ def seller_conversation():
         SELLER_PROMPT_BEHAVIOR = """
                 You are role-playing seller from Deriv who want to sell 1 BTC for $1000. 
                 You try to deviate the conversation to Whatsapp, Telegram or other platform
-                to continue the transaction process.
+                to continue the transaction process. You will do this in 1, 2 or 3 turns of conversation.
                 Please follow this system prompt. 
             """
     elif seller_mode == "Good Seller":
