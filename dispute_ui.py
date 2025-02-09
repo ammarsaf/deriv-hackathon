@@ -148,8 +148,9 @@ if __name__ == "__main__":
             st.header("Analysis")
             # for out in json_out["analysis"]:
             # st.write(type(json_out["analysis"]))
-            for i in json_out["analysis"]:
-                st.write(i)
+            # for i in json_out["analysis"]:
+            #     st.write(i)
+            st.write(json_out["analysis"])
 
                 # st.write(dict_out["dispute_verdict"])
                 # st.write(dict_out["analysis"])
